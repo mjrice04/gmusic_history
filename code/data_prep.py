@@ -2,8 +2,11 @@ import pandas as pd
 from image_handler import get_image
 
 
-def file_storage():
-    pass
+def file_storage(df, name, year=None):
+    if year:
+        df.to_csv(f'/home/matt/projects/google_music_analytics/data/output/{name}-{year}.csv')
+    else:
+        df.to_csv(f'/home/matt/projects/google_music_analytics/data/output/{name}-alltime.csv')
 
 
 def get_top_songs(songs, year=None, years=None):
@@ -47,7 +50,7 @@ def get_top_albums(albums, year=None, years=None):
         album_subset = albums[['album', 'artist', 'playCount', 'albumId', 'year']]
         album_subset_year = album_subset.loc[album_subset['year'] == year]
         clean_album_subset = album_subset_year[['album', 'artist', 'playCount', 'albumId']]
-        grouped_subset = clean_album_subset.groupby(['album', 'artist' 'albumId'], as_index=False)[['playCount']].sum()
+        grouped_subset = clean_album_subset.groupby(['album', 'artist', 'albumId'], as_index=False)[['playCount']].sum()
         top_albums_2019 = grouped_subset.sort_values(by=['playCount'], ascending=False)
         ta = top_albums_2019.head(25)
     elif years:
@@ -56,12 +59,12 @@ def get_top_albums(albums, year=None, years=None):
         album_subset = albums[['album', 'artist', 'playCount', 'albumId', 'year']]
         album_subset_year = album_subset.loc[(album_subset['year'] >= year_start) & (album_subset['year'] <= year_end)]
         clean_album_subset = album_subset_year[['album', 'artist', 'playCount', 'albumId']]
-        grouped_subset = clean_album_subset.groupby(['album', 'artist' 'albumId'], as_index=False)[['playCount']].sum()
+        grouped_subset = clean_album_subset.groupby(['album', 'artist', 'albumId'], as_index=False)[['playCount']].sum()
         top_albums_2019 = grouped_subset.sort_values(by=['playCount'], ascending=False)
         ta = top_albums_2019.head(25)
     else:
         album_subset = albums[['album', 'artist', 'playCount', 'albumId']]
-        grouped_subset = album_subset.groupby(['album', 'artist' 'albumId'], as_index=False)[['playCount']].sum()
+        grouped_subset = album_subset.groupby(['album', 'artist', 'albumId'], as_index=False)[['playCount']].sum()
         top_albums = grouped_subset.sort_values(by=['playCount'], ascending=False)
         ta = top_albums.head(50)
     return ta
@@ -105,3 +108,27 @@ artist_cols = ['artistId', 'artistarturl']
 artist_art = df[artist_cols].copy()
 clean_artist_art = artist_art.drop_duplicates()
 
+top_songs = get_top_songs(songs)
+file_storage(top_songs, 'songs')
+
+top_albums = get_top_albums(songs)
+file_storage(top_albums, 'albums')
+
+top_artists = get_top_artist(songs)
+file_storage(top_artists, 'artists')
+
+year_list = [2019.0, 2018.0, 2017.0, 2016.0, 2015.0, 2014.0, 2013.0, 2012.0, 2011.0, 2010.0, [2000.0, 2009.0],
+             [1990.0, 1999.0], [1980.0, 1989.0], [1970.0, 1979.0], [0.0, 1969.0]]
+
+for year in year_list:
+    print(year)
+    if isinstance(year, list):
+        top_songs = get_top_songs(songs, years=year)
+        top_albums = get_top_albums(songs, years=year)
+    else:
+        top_songs = get_top_songs(songs, year=year)
+        top_albums = get_top_albums(songs, year=year)
+    formatted_top_songs = merge_in_id(top_songs, clean_album_art, 'albumId')
+    formatted_top_albums = merge_in_id(top_albums, clean_album_art, 'albumId')
+    file_storage(formatted_top_songs, 'songs', year)
+    file_storage(formatted_top_albums, 'albums', year)
