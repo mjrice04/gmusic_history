@@ -5,6 +5,7 @@ import base64
 import requests
 from PIL import Image
 from io import BytesIO
+import time
 from IPython.display import HTML
 pd.set_option('display.max_colwidth', -1)
 
@@ -16,6 +17,7 @@ def get_image(df_url):
 	print(a_id)
 	image_id = df_url['albumarturl']
 	print(image_id)
+	time.sleep(1)
 	img_data = requests.get(image_id).content
 	with open(f"/home/matt/projects/google_music_analytics/data/images/{a_id}.jpg", 'wb') as handler:
 		handler.write(img_data)
